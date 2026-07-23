@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargando Pedidos - Día de la Amistad</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .loading-section {
+            margin: 40px 0;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+        
+        .click-button {
+            padding: 16px 32px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .click-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .click-button:active {
+            transform: translateY(0);
+        }
+        
+        .resultado-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .resultado-section.show {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            animation: confettiFall 3s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotateZ(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .resultado-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .resultado-card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .resultado-card .nombre {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        
+        .resultado-card .label-regalo {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .resultado-card .regalo {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .celebracion {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .mensaje-exito {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .particula-emoji {
+            position: fixed;
+            font-size: 40px;
+            pointer-events: none;
+            animation: particleFloat 2s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes particleFloat {
+            to {
+                transform: translateY(-100px) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Pedidos Especiales</h1>
+            <p>Día de la Amistad</p>
+        </div>
+        
+        <div id="loadingSection" class="loading-section">
+            <div class="spinner"></div>
+            <div class="status-text">⏳ Cargando tus pedidos...</div>
+            
+            <button class="click-button" onclick="hacerClick()">
+                ⚡ Cargar mis pedidos
+            </button>
+        </div>
+        
+        <div id="resultadoSection" class="resultado-section">
+            <div class="celebracion">🎁 🎊 🎈</div>
+            <div class="mensaje-exito">¡Tu pedido está listo!</div>
+            
+            <div class="resultado-card">
+                <h2>Persona que pidió:</h2>
+                <div class="nombre" id="nombrePersona">---</div>
+                
+                <div class="label-regalo">Pidió:</div>
+                <div class="regalo" id="regaloPedido">---</div>
+            </div>
+            
+            <button class="click-button" onclick="reintentar()">
+                🔄 Cargar otro pedido
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let clicks = 0;
+        const clicksRequeridos = 100;
+        
+        // Datos extraídos del Excel
+        const pedidos = [
+            { nombre: "Alicia Gómez", regalo: "1- Vale lavadero ESPIN (50mil es) :)" },
+            { nombre: "Montse Coronel", regalo: "Hoppie" },
+            { nombre: "Nadia", regalo: "Algo comestible" },
+            { nombre: "Juan Giangiacomo", regalo: "Un limpiador para teclado" },
+            { nombre: "Gustavo Martinez", regalo: "Algo sobre futbol, fernet o café." },
+            { nombre: "Rocio González", regalo: "Set cuidado personal ej crema hidratante corporal, jabón facial piel seca o la opción que le parezca mejor, el detalle es lo que cuenta" },
+            { nombre: "Oscar Vargas", regalo: "soporte para celular" },
+            { nombre: "Katia", regalo: "Postres saludables sin azúcar" },
+            { nombre: "Ricar", regalo: "Chocolate (alfajor havanna tradicional mi fav)" },
+            { nombre: "Pedro Vallory", regalo: "Café molido (https://www.casarica.com.py/cafe-quattro-d-250gr-p23747)" },
+            { nombre: "Gabriela Quintana", regalo: "transferencias a partir de 500.000 gs" },
+            { nombre: "Maia Gonzalez", regalo: "Taper de vidrio chico, mouse pad rosado, cartuchera o neceser rosado" },
+            { nombre: "Rocio Cáceres", regalo: "Cerveza o un autito de hot wheels" },
+            { nombre: "David Pedrozo", regalo: "Alguna bebida, algo comestible, billetera o lo que sea. Lo que cae del cielo no golpea jeje" },
+            { nombre: "Milciades Rojas", regalo: "Cinta Métrica, Llave 10 con cricket" },
+            { nombre: "Gabriela Quintana", regalo: "1. gifcard de spa 2. Neceser para artículos personales" },
+            { nombre: "Valeria Gavilan - Compras", regalo: "Ropa para entrenar (gimnasio o padel), joyas, perfumes, cremas, lo que sea :)" }
+        ];
+        
+        const pedidoAleatorio = pedidos[Math.floor(Math.random() * pedidos.length)];
+        
+        function hacerClick() {
+            clicks++;
+            mostrarMensajeAleatorio();
+            reproducirSonido();
+            
+            if (clicks >= clicksRequeridos) {
+                mostrarResultado();
+            }
+        }
+        
+        function mostrarMensajeAleatorio() {
+            const mensajes = [
+                '💪 ¡Vos podés, seguí clickeando!',
+                '🌟 Cada click te acerca a la felicidad',
+                '🚀 ¡Adelante, campeón!',
+                '✨ La magia ocurre con persistencia',
+                '🎯 ¡Casi llegás!',
+                '⭐ ¡Vos sos increíble!',
+                '🔥 ¡Dale, que se puede!',
+                '💝 Un click más de felicidad',
+                '🎊 ¡Lo vas a lograr!',
+                '✊ ¡Nunca te rindas!',
+                '🌈 La recompensa viene después',
+                '💎 ¡Seguí adelante!',
+                '🚀 ¡Despega como un cohete!',
+                '👏 ¡Bravo, seguís fuerte!',
+                '🏆 ¡Campeón! ¡Sigue!',
+                '💫 La suerte está de tu lado',
+                '🎯 Un click más para la gloria',
+                '⚡ ¡La energía te acompaña!',
+                '🌟 ¡Sos un ganador!',
+                '💪 ¡Esa actitud!',
+                '🎉 ¡Cada click cuenta!',
+                '✅ ¡Lo estás haciendo genial!',
+                '🔥 ¡Así es! ¡Dale!',
+                '🌠 La fe mueve montañas'
+            ];
+            
+            const statusText = document.querySelector('.status-text');
+            const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+            statusText.textContent = mensajeAleatorio;
+        }
+        
+        function mostrarResultado() {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('resultadoSection').classList.add('show');
+            document.getElementById('nombrePersona').textContent = pedidoAleatorio.nombre;
+            document.getElementById('regaloPedido').textContent = pedidoAleatorio.regalo;
+            
+            // Confetti
+            crearConfetti();
+            
+            // Particulas flotantes
+            crearParticulas();
+        }
+        
+        function crearConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.background = ['#667eea', '#764ba2', '#FFD700', '#FF69B4'][Math.floor(Math.random() * 4)];
+                confetti.style.animation = `confettiFall ${2 + Math.random() * 1}s ease-out forwards`;
+                confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+        
+        function crearParticulas() {
+            const emojis = ['🎁', '🎉', '🎊', '🎈', '⭐'];
+            for (let i = 0; i < 20; i++) {
+                const particula = document.createElement('div');
+                particula.className = 'particula-emoji';
+                particula.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                particula.style.left = Math.random() * 100 + '%';
+                particula.style.top = Math.random() * 100 + '%';
+                particula.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(particula);
+                
+                setTimeout(() => particula.remove(), 2500);
+            }
+        }
+        
+        function reproducirSonido() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 400 + Math.random() * 200;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                // Sin sonido si no hay permiso
+            }
+        }
+        
+        function reintentar() {
+            clicks = 0;
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultadoSection').classList.remove('show');
+        }
+        
+        // Permitir clicks con Enter o Space
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                hacerClick();
+            }
+        });
+    </script>
+</body>
+</html>
